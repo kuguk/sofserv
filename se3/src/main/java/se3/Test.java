@@ -19,9 +19,6 @@ public class Test {
 	
 	driver.navigate().to("https://github.com");
 	driver.manage().window().maximize();
-
-//  driver.get("http://www.google.com");
-//	WebElement element = driver.findElement(By.name("q"));
 			  		
     //wait.until(ExpectedConditions.visibilityOfElementLocated(By.partialLinkText("Sign in")));  
 	driver.manage().timeouts().implicitlyWait(2000, TimeUnit.MILLISECONDS);
