@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -16,18 +17,31 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 public class Test {
 	
 	private static WebDriver driver;
-    private static WebDriverWait wait;
+	private static WebElement element;
+	private static WebDriverWait wait;
     private static String login;
     private static String password;
     private static String site_url;
     private static String pathToChromeDriver;
-    private static String stop;
+    private static String pathToconf_properties = "./conf.properties";
     
+    private static Test expt = new Test();
     
+/* create own type of Exception   */
+    protected class BadLogin extends Exception {	
+		
+		private static final long serialVersionUID = 1L;
+		public BadLogin(String message) {
+	      super(message);
+		}
+		public BadLogin() { };
+	}
+ 	
     private static void set_conf() throws IOException {
-        try(InputStream inputStream = new FileInputStream("./conf.properties")) {
-            Properties properties = new Properties();
-            properties.load(inputStream);
+        
+       InputStream inputStream = new FileInputStream(pathToconf_properties) ;
+       Properties properties = new Properties();
+       properties.load(inputStream);
             
             login = properties.getProperty("login");
             password = properties.getProperty("password");
@@ -37,27 +51,30 @@ public class Test {
             System.setProperty("webdriver.chrome.driver", pathToChromeDriver);
             driver = new ChromeDriver();
 
-            wait = new WebDriverWait(driver, 10);
-	        
-        } catch (IOException io) {
-        	System.out.println(io.getMessage());
-        }
-         catch (Exception ex) {        	
-        	System.out.println(ex.getMessage());
-        	stop = "err";
-        }
+            wait = new WebDriverWait(driver, 3);
 	}
-	
-  public static void main(String[] args) throws InterruptedException, IOException {
-		
-	set_conf();
+    
+   public static void main(String[] args)  {
+		  
+	try {
+		set_conf();
+	} 
+	catch (IOException io) {
+		System.out.println(io.getMessage());
+		return;
+    }
+    catch (Exception ex) {        	
+      	System.out.println(ex.getMessage());
+      	driver.quit();
+      	return;
+    }
 
-	if (stop == "err") return;
-		
+  try {		
+
+ /* Login to GitHub account  */
 	driver.navigate().to(site_url);
 	driver.manage().window().maximize();
 			  		
-/* Login to GitHub account */
 	wait.until(ExpectedConditions.elementToBeClickable(By.partialLinkText("Sign in")));  	
 	driver.findElement(By.partialLinkText("Sign in")).click();
 		
@@ -67,7 +84,26 @@ public class Test {
 
     /* Form submit  */
 	driver.findElement(By.name("password")).submit();	
-
+	
+	
+	try {
+		boolean element;
+		element = driver.findElement(By.xpath("//*[@class='flash flash-full flash-error ']")).isDisplayed(); 
+		
+		if (element) throw expt.new BadLogin("Incorrect username or password.");
+	}
+	catch (BadLogin bl_ex)  {	        	
+		System.out.println(bl_ex.getMessage());  	
+		 driver.quit();
+		 return;
+	}		
+	catch (Exception ex)  {	
+		if (element != null) {
+		System.out.println(ex.getMessage());  	
+		driver.quit();
+		return;}			
+	}
+			
 /* Create a new repository:  */
 	
 	/* Call up-right menu */
@@ -115,8 +151,14 @@ public class Test {
 	driver.findElement(By.xpath("//button[contains(text(),'Sign out')]")).click();
 
 	//Thread.sleep(5000);
-	driver.quit();
-	 
+	//driver.quit(); 
 	}
-	
+ catch (Exception ex) 
+   {        	
+  	System.out.println(ex.getMessage());  	
+   }
+  
+  driver.quit();
+    
+  }	
 }
