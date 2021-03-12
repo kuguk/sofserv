@@ -51,7 +51,7 @@ public class Test {
             System.setProperty("webdriver.chrome.driver", pathToChromeDriver);
             driver = new ChromeDriver();
 
-            wait = new WebDriverWait(driver, 3);
+            wait = new WebDriverWait(driver, 5);
 	}
     
    public static void main(String[] args)  {
@@ -78,7 +78,8 @@ public class Test {
 	wait.until(ExpectedConditions.elementToBeClickable(By.partialLinkText("Sign in")));  	
 	driver.findElement(By.partialLinkText("Sign in")).click();
 		
-	driver.manage().timeouts().implicitlyWait(2000, TimeUnit.MILLISECONDS);
+	wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("login")));
+	//driver.manage().timeouts().implicitlyWait(2000, TimeUnit.MILLISECONDS);
 	driver.findElement(By.name("login")).sendKeys(login);
 	driver.findElement(By.name("password")).sendKeys(password);	
 
@@ -123,6 +124,7 @@ public class Test {
 	driver.findElement(By.id("repository_gitignore_template_toggle")).submit();
 	
 	/* Adding a README-file:  */
+	wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[contains(text(),'Add a README')]"))); 
 	driver.findElement(By.xpath("//a[contains(text(),'Add a README')]")).click();
       //Change content README-file
 	driver.findElement(By.xpath("//span[@role='presentation']")).sendKeys(Keys.chord(Keys.CONTROL, "a"),"My Test Repository");
